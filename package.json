@@ -18,10 +18,13 @@
   "homepage": "https://github.com/realappie/jarvis#readme",
   "description": "",
   "devDependencies": {
+    "@types/nodemailer": "^4.3.1",
     "nodemon": "^1.12.1",
     "ts-node": "^3.3.0"
   },
   "dependencies": {
+    "node-telegram-bot-api": "^0.29.0",
+    "nodemailer": "^4.4.0",
     "typescript": "^2.6.1"
   }
 }
