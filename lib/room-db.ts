@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
 
-const serviceAccount = require('../.secret/room-finder-service-account.json');
+const serviceAccount = JSON.parse(process.env['GOOGLE_SERVICE_ACCOUNT']);
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
