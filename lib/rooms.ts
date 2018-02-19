@@ -11,7 +11,7 @@ const RoomCredentials = JSON.parse(process.env['ROOM_CREDENTIALS']);
 
 const END_POINT_URL = process.env['ROOM_WEBSITE_ENDPOINT'];
 
-interface IResult {
+interface IApartamentResult {
     MessageList: any[];
     Adres: string;
     /** Region */
@@ -38,7 +38,7 @@ interface IResult {
     AantalWoningen: any;
     AantalBeschikbaar: any;
     /** Unique id of publication */
-    PublicatieId: number;
+    PublicatieId: string;
     ResterendetijdUur: number;
     ResterendetijdDagen: number;
     ShowResterendeTijd: boolean;
@@ -88,7 +88,7 @@ interface IRoomFindRespose {
     Url: string;
     NoFilterInUrlLabel: string;
     Legenda: any[];
-    Resultaten: IResult[]
+    Resultaten: IApartamentResult[]
     PredefinedFilters: any;
     IsGeautenticeerd: boolean;
     TabUitlegText: string;
@@ -138,7 +138,7 @@ export class Apartament {
     /** The room filter we will use to fetch apartaments */
     private readonly APARTAMENT_FILTER = 'soort[Zelfstandig]';
 
-    constructor() { }
+    constructor() {  }
 
     /** 
      * Returns the latest new rooms
@@ -155,25 +155,15 @@ export class Apartament {
         const savedAparatements = await this.getCurrentAaratementsIds();
         
         /** The new apartaments we found */
-        const newAparatements = apartaments.filter( el => !savedAparatements.includes(el.PublicatieId.toString()) );
+        const newAparatements = apartaments.filter( el => !savedAparatements.includes(el.PublicatieId) );
 
         /** A summarised apartament */
-        const summarisedApartaments: IApartamentSummary[] = newAparatements.map( newAparatement => {
-            const summarisedApartament: IApartamentSummary = {
-                description: newAparatement.Omschrijving,
-                endDate: newAparatement.PublicatieEinddatum,
-                location : {
-                    lang: newAparatement.Longitude,
-                    latt: newAparatement.Latitude
-                },
-                price: newAparatement.Prijs,
-                region: newAparatement.PlaatsWijk,
-                roomCount: + newAparatement.Kamers,
-                url: `${END_POINT_URL}/${newAparatement.PreviewUrl}`,
-                adress: newAparatement.Adres
-            }
+        const summarisedApartaments: IApartamentSummary[] = newAparatements.map(newAparatement => this.getApartamentSummary(newAparatement) );
 
-            return summarisedApartament;
+        // Updating the database with the new apartaments
+        //
+        newAparatements.forEach( apartament => {
+            this.updateKnownApartament(apartament.PublicatieId, this.getApartamentSummary(apartament) );
         });
         
         return summarisedApartaments;
@@ -229,7 +219,7 @@ export class Apartament {
     /** 
      * This will fetch all the aparatements
     */
-    private async fetchApartaments(session_id: string): Promise<IResult[]> {
+    private async fetchApartaments(session_id: string): Promise<IApartamentResult[]> {
         let totalApartaments = await this.getTotalApartaments(session_id);
 
         /** Amount of trips we need to make to fetch all aparatements */
@@ -296,7 +286,7 @@ export class Apartament {
      * @param session_id {string} the session id of the current logged in user
      * @param pageNumber {number} which page number, starting at 0
     */
-    private async fetchApartamentBatch(session_id: string, pageNumer: number): Promise<IResult[]> {
+    private async fetchApartamentBatch(session_id: string, pageNumer: number): Promise<IApartamentResult[]> {
         /** Represents the default url */
         const defaultUrl = `model[Regulier aanbod]~${this.APARTAMENT_FILTER}~predef[]`;
 
@@ -347,6 +337,14 @@ export class Apartament {
         return data;
     }
 
+    /**
+     * Updates the database with the current known apartaments
+     * @param ids 
+     */
+    public async updateKnownApartament( id: string, apartament: IApartamentSummary) {
+        return admin.database().ref('/current_apartaments/' + id).set(apartament);
+    }
+
     /** 
      * Loops through all apartaments and updates the database with known apartaments
      * We probably only have to do this the first time this application is executed. But we might need it in the future in case we purge
@@ -362,9 +360,13 @@ export class Apartament {
             const apartaments = await this.fetchApartaments(session_id);
 
 
-            const data = apartaments.map(aparatement => aparatement.PublicatieId);
+            const data = apartaments.forEach(aparatement => {
+                const apartamentSummary = this.getApartamentSummary(aparatement);
 
-            admin.database().ref('/current_apartaments').set( data );
+                this.updateKnownApartament(aparatement.PublicatieId, apartamentSummary);
+            });
+
+            
         } catch (e) {
             console.error('[syncing:aparatements] error syncing aparatements', e);
         }   
@@ -374,9 +376,13 @@ export class Apartament {
      * Returns the ids of the current saved aparatements
     */
     private async getCurrentAaratementsIds(): Promise<string[]> {
-        const snapshot = await admin.database().ref('/current_apartaments').once('value');
+        const request = await (fetch('https://room-finder-4d2b2.firebaseio.com/current_apartaments/.json?shallow=true') as Promise<Request>);
+        
+        const data = await request.json() || {};
+        
+        const keys = Object.keys(data);
 
-        return snapshot.val();
+        return keys;
     }
 
     /** 
@@ -421,5 +427,23 @@ export class Apartament {
         catch(e) {
             console.error('[aparatements:login] error logging in', e);
         }
+    }
+
+    private getApartamentSummary( fullApartament: IApartamentResult ): IApartamentSummary {
+        const summarisedApartament: IApartamentSummary = {
+            description: fullApartament.Omschrijving,
+            endDate: fullApartament.PublicatieEinddatum,
+            location: {
+                lang: fullApartament.Longitude,
+                latt: fullApartament.Latitude
+            },
+            price: fullApartament.Prijs,
+            region: fullApartament.PlaatsWijk,
+            roomCount: + fullApartament.Kamers,
+            url: `${END_POINT_URL}/${fullApartament.PreviewUrl}`,
+            adress: fullApartament.Adres
+        }
+
+        return summarisedApartament;
     }
 }
