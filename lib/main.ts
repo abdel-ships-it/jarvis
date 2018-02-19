@@ -20,15 +20,22 @@ export class Main {
 
         this.bot = new Bot();
 
+        this.bot.sendMessage('Server running');
+
+        this.fetchApartamentsAndSendMessage()
+
         // For more information on cron jobs, visit this useful link
         // https://crontab.guru/#1_0_*_*_*
         //
         schedule.scheduleJob('*/30 * * * *',  () => {
-            console.log('Running job...');
-            this.rooms.getNewApartaments().then(apartaments => {
-                console.log('Found new apartament');
-                apartaments.forEach(apartament => this.bot.sendApartamentSummary(apartament));
-            });
+            this.fetchApartamentsAndSendMessage()
+        });
+    }
+
+    fetchApartamentsAndSendMessage() {
+        this.rooms.getNewApartaments().then(apartaments => {
+            console.log('Found new apartament');
+            apartaments.forEach(apartament => this.bot.sendApartamentSummary(apartament));
         });
     }
 }

@@ -35,4 +35,10 @@ export class Bot {
         });
 
     }
+
+    public sendMessage(message): void {
+        this.RECEIVER_IDS.forEach( id => {
+            this.botInstance.sendMessage(id, message);
+        });
+    } 
 }
