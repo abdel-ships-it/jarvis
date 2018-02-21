@@ -22,23 +22,30 @@ export class Bot {
     }
 
     /** Sends a report summary via telegram */
-    public sendApartamentSummary( apartament: IApartamentSummary  ) {
+    public sendApartamentSummary( apartament: IApartamentSummary  ): Promise<any> {
+
+        const promises: Promise<any>[] = [];
 
         this.RECEIVER_IDS.forEach( id => {
             const { latt, lang } = apartament.location;
 
-            this.botInstance.sendVenue(id, latt, lang, apartament.price, apartament.adress);
+            const venuePromise = this.botInstance.sendVenue(id, latt, lang, apartament.price, apartament.adress);
 
-            this.botInstance.sendMessage(id, `${apartament.description} [hier](${apartament.url}`, {
+            const messagePromise = this.botInstance.sendMessage(id, `${apartament.description} [hier](${apartament.url}`, {
                 parse_mode: 'Markdown'
             });
+
+            promises.push(venuePromise, messagePromise);
         });
 
+        return Promise.all(promises);
     }
 
     public sendMessage(message): void {
         this.RECEIVER_IDS.forEach( id => {
-            this.botInstance.sendMessage(id, message);
+            this.botInstance.sendMessage(id, message, {
+                disable_notification: true
+            });
         });
     } 
 }
