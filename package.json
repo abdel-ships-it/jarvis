@@ -25,7 +25,7 @@
     "@types/nodemailer": "^4.3.1",
     "@types/puppeteer": "^0.13.9",
     "@types/whatwg-fetch": "0.0.33",
-    "nodemon": "^1.12.1",
+    "nodemon": "^1.12.1"
   },
   "dependencies": {
     "firebase-admin": "^5.8.2",
