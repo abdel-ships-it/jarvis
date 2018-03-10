@@ -20,7 +20,7 @@ export class Main {
 
         this.bot = new Bot();
 
-        this.bot.sendMessage('Server running');
+        this.bot.sendMessage('Server started...');
 
         this.fetchApartamentsAndSendMessage()
 
