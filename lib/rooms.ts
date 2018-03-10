@@ -212,7 +212,12 @@ export class Apartament {
             return sessionId;
         } else {
             console.log(`[rooms:login:check] user is not logged ❌, status code ${status}`);
-            return this.login();
+            
+            const newSessionId = this.login();
+            
+            console.log(`[rooms:login:check] gathered new session id ${newSessionId}`);
+
+            return newSessionId;
         }
     }
     
