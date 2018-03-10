@@ -34,8 +34,11 @@ export class Main {
 
     fetchApartamentsAndSendMessage() {
         this.rooms.getNewApartaments().then(apartaments => {
-            console.log('Found new apartament');
-            apartaments.forEach(apartament => this.bot.sendApartamentSummary(apartament));
+            apartaments.forEach( (apartament, index) => {
+                setTimeout(() => {
+                    this.bot.sendApartamentSummary(apartament)
+                }, index * 3000);
+            });
         });
     }
 }
