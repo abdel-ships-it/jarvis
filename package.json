@@ -28,6 +28,7 @@
     "nodemon": "^1.12.1"
   },
   "dependencies": {
+    "airbrake-js": "^1.4.8",
     "firebase-admin": "^5.8.2",
     "google-auth-library": "^0.12.0",
     "googleapis": "^23.0.0",
