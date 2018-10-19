@@ -1,6 +1,5 @@
 import * as fs  from 'fs';
 import * as readline  from 'readline';
-import * as google  from 'googleapis';
 const googleAuth = require('google-auth-library');
 
 export class Gmail {
