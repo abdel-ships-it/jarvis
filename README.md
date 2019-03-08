@@ -10,4 +10,4 @@ But most of it is tailored for me.
 You need to populate the `.env` file locally via `heroku config --app=my-jarvis >> .env`
 This has the default notation of `KEY:VALUE` but `heroku local` reads it as `KEY=VALUE` so make sure you change the files format.
 
-You need heroku cli to ensure `.env` file gets loaded in. For development simply use `npm run start`
+You need heroku cli to ensure `.env` file gets loaded in. For development simply use `npm run start` 
